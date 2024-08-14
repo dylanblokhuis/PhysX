@@ -17,26 +17,20 @@ pub fn build(b: *std.Build) !void {
 
     const lib = b.addStaticLibrary(.{
         .name = "PhysX",
-        // In this case the main source file is merely a path, however, in more
-        // complicated build scripts, this could be a generated file.
         .target = target,
         .optimize = optimize,
     });
+    b.installArtifact(lib);
+
     lib.linkLibC();
     lib.linkLibCpp();
 
-    // This declares intent for the library to be installed into the standard
-    // location when the user invokes the "install" step (the default step when
-    // running `zig build`).
-    b.installArtifact(lib);
     var physx_dir = try std.fs.cwd().openDir("physx", .{
         .iterate = true,
     });
     var source_dir = try std.fs.cwd().openDir("physx/source", .{
         .iterate = true,
     });
-    var walker = try source_dir.walk(b.allocator);
-    defer walker.deinit();
 
     lib.addIncludePath(.{
         .cwd_relative = try physx_dir.realpathAlloc(b.allocator, "include"),
@@ -72,6 +66,10 @@ pub fn build(b: *std.Build) !void {
     }
 
     var known_paths = std.StringHashMap(void).init(b.allocator);
+    defer known_paths.deinit();
+
+    var walker = try source_dir.walk(b.allocator);
+    defer walker.deinit();
 
     while (try walker.next()) |entry| {
         if (target.result.os.tag != .windows and std.mem.containsAtLeast(u8, entry.path, 1, "windows")) {
@@ -106,7 +104,6 @@ pub fn build(b: *std.Build) !void {
             const path = known_paths.get(dir);
 
             if (path == null) {
-                std.debug.print("dir: {s}\n", .{dir});
                 lib.addIncludePath(.{
                     .cwd_relative = dir,
                 });
