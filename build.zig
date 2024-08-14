@@ -20,11 +20,11 @@ pub fn build(b: *std.Build) !void {
     const lib = if (is_shared) b.addSharedLibrary(.{
         .name = "PhysX",
         .target = target,
-        .optimize = optimize,
+        .optimize = .ReleaseFast,
     }) else b.addStaticLibrary(.{
         .name = "PhysX",
         .target = target,
-        .optimize = optimize,
+        .optimize = .ReleaseFast,
     });
     b.installArtifact(lib);
 
@@ -45,11 +45,14 @@ pub fn build(b: *std.Build) !void {
         .cwd_relative = try source_dir.realpathAlloc(b.allocator, "common/include"),
     });
 
+    // lib.defineCMacro("PX_LIBCPP", "1");
+    // lib.defineCMacro("PX_CHECKED", "1");
     lib.defineCMacro("NDEBUG", "1");
     lib.defineCMacro("PX_PHYSX_STATIC_LIB", "1");
     lib.defineCMacro("PX_CLANG", "1");
     lib.defineCMacro("DISABLE_CUDA_PHYSX", "1");
     lib.defineCMacro("PX_SUPPORT_PVD", "1");
+    lib.defineCMacro("PX_SUPPORT_GPU_PHYSX", "0");
 
     switch (target.result.cpu.arch) {
         .x86 => lib.defineCMacro("PX_X86", "1"),
@@ -89,15 +92,17 @@ pub fn build(b: *std.Build) !void {
                     .cwd_relative = file_path,
                 },
                 .flags = &.{
-                    "-std=c++17",
-                    "-w",
-                    "-fno-rtti",
-                    "-fno-exceptions",
-                    "-ffunction-sections",
-                    "-fdata-sections",
-                    "-fno-strict-aliasing",
-                    "-fvisibility=hidden",
-                    "-ffp-exception-behavior=maytrap",
+                    // "-std=c++11",
+
+                    "-std=c++11", "-fno-rtti", "-fno-exceptions", "-ffunction-sections", "-fdata-sections", "-fstrict-aliasing", "-fvisibility=hidden", "-ffp-exception-behavior=maytrap", "-fno-threadsafe-statics",
+                    // "-w",
+                    // "-fno-rtti",
+                    // "-fno-exceptions",
+                    // "-ffunction-sections",
+                    // "-fdata-sections",
+                    // "-fno-strict-aliasing",
+                    // "-fvisibility=hidden",
+                    // "-ffp-exception-behavior=maytrap",
                 },
             });
         }
@@ -131,7 +136,12 @@ pub fn build(b: *std.Build) !void {
         .cwd_relative = try physx_dir.realpathAlloc(b.allocator, "include"),
     });
 
-    exe.addCSourceFile(.{ .file = b.path("src/wrapper.cpp") });
+    exe.addCSourceFile(.{
+        .file = b.path("src/wrapper.cpp"),
+        .flags = &.{
+            "-std=c++11", "-fno-rtti", "-fno-exceptions", "-ffunction-sections", "-fdata-sections", "-fstrict-aliasing", "-fvisibility=hidden", "-ffp-exception-behavior=maytrap", "-fno-threadsafe-statics",
+        },
+    });
     exe.addIncludePath(b.path("src"));
 
     b.installArtifact(exe);

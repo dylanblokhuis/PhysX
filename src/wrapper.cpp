@@ -40,12 +40,14 @@ extern "C"
     return physics->createScene(sceneDesc);
   }
 
-  PxMaterialRef pxPhysicsCreateMaterial(PxPhysicsRef physics, float dynamicFriction, float staticFriction, float restitution) {
+  PxMaterialRef pxPhysicsCreateMaterial(PxPhysicsRef physics, float dynamicFriction, float staticFriction, float restitution)
+  {
     return physics->createMaterial(dynamicFriction, staticFriction, restitution);
   }
 
-  PxRigidStaticRef pxCreatePlane(PxPhysicsRef physics, PxPlanef plane, PxMaterialRef material) {
-      return PxCreatePlane(*physics, PxPlane(plane.normal.x, plane.normal.y, plane.normal.z, plane.distance), *material);
+  PxRigidStaticRef pxCreatePlane(PxPhysicsRef physics, PxPlanef plane, PxMaterialRef material)
+  {
+    return PxCreatePlane(*physics, PxPlane(plane.normal.x, plane.normal.y, plane.normal.z, plane.distance), *material);
   }
 
   void pxSceneAddActor(PxSceneRef scene, PxActorRef actor)
@@ -63,8 +65,33 @@ extern "C"
     return scene->fetchResults(block);
   }
 
-  
+  C_PxU32 pxSceneGetNbActors(PxSceneRef scene, C_PxActorTypeFlag flags)
+  {
+    return scene->getNbActors(PxActorTypeFlags(flags));
+  }
 
-  
+  C_PxU32 pxSceneGetActors(PxSceneRef scene, C_PxActorTypeFlag flags, PxActorRef *actors, C_PxU32 bufferSize, C_PxU32 startIndex)
+  {
+    return scene->getActors(PxActorTypeFlags(flags), actors, bufferSize, startIndex);
+  }
 
+  bool pxActorIsRigidStatic(PxActorRef actor)
+  {
+    return actor->is<PxRigidStatic>();
+  }
+
+  C_PxU32 pxRigidActorGetNbShapes(PxRigidActorRef actor)
+  {
+    return actor->getNbShapes();
+  }
+  C_PxU32 pxRigidActorGetShapes(PxRigidActorRef actor, PxShapeRef *shapes, C_PxU32 size, C_PxU32 startIndex)
+  {
+    return actor->getShapes(shapes, size, startIndex);
+  }
+
+  PxMat44f pxShapeGetGlobalPose(PxShapeRef shape, PxRigidActorRef actor)
+  {
+    PxMat44 shapePose(PxShapeExt::getGlobalPose(*shape, *actor));
+    return reinterpret_cast<PxMat44f &>(shapePose);
+  }
 };
