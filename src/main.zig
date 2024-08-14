@@ -1,24 +1,36 @@
 const std = @import("std");
+const c = @cImport({
+    @cInclude("wrapper.h");
+});
 
 pub fn main() !void {
+    const foundation = c.pxCreateFoundation();
+    const physics = c.pxCreatePhysics(foundation, null);
+    const scene = c.pxPhysicsCreateScene(physics);
+
+    const material = c.pxPhysicsCreateMaterial(physics, 0.5, 0.5, 0.6);
+    const plane = c.pxCreatePlane(physics, .{
+        .normal = .{
+            .x = 0.0,
+            .y = 1.0,
+            .z = 0.0,
+        },
+        .distance = 0.0,
+    }, material);
+
+    c.pxSceneAddActor(scene, @ptrCast(plane));
+
+    var frames: usize = 0;
+    while (frames < 100) : (frames += 1) {
+        if (!c.pxSceneSimulate(scene, 1.0 / 60.0)) {
+            return error.Failed;
+        }
+
+        if (!c.pxSceneFetchResults(scene, true)) {
+            return error.Failed;
+        }
+    }
+
     // Prints to stderr (it's a shortcut based on `std.io.getStdErr()`)
-    std.debug.print("All your {s} are belong to us.\n", .{"codebase"});
-
-    // stdout is for the actual output of your application, for example if you
-    // are implementing gzip, then only the compressed bytes should be sent to
-    // stdout, not any debugging messages.
-    const stdout_file = std.io.getStdOut().writer();
-    var bw = std.io.bufferedWriter(stdout_file);
-    const stdout = bw.writer();
-
-    try stdout.print("Run `zig build test` to run the tests.\n", .{});
-
-    try bw.flush(); // don't forget to flush!
-}
-
-test "simple test" {
-    var list = std.ArrayList(i32).init(std.testing.allocator);
-    defer list.deinit(); // try commenting this out and see if zig detects the memory leak!
-    try list.append(42);
-    try std.testing.expectEqual(@as(i32, 42), list.pop());
+    std.debug.print("Hello, world!\n", .{});
 }
