@@ -1,4 +1,5 @@
 #include <ctype.h>
+#include <stdio.h>
 
 #include "PxPhysicsAPI.h"
 
@@ -12,9 +13,6 @@ extern "C"
 {
 #include "wrapper.h"
 
-  // typedef struct PxFoundation* PxFoundationRef;
-  // typedef struct PxPhysics* PxPhysicsRef;
-  // typedef struct PxPvd* PxPvdRef;
 
   PxFoundationRef pxCreateFoundation()
   {
@@ -37,12 +35,43 @@ extern "C"
     sceneDesc.gravity = PxVec3(0.0f, -9.81f, 0.0f);
     gDispatcher = PxDefaultCpuDispatcherCreate(2);
     sceneDesc.cpuDispatcher = gDispatcher;
+    sceneDesc.filterShader = PxDefaultSimulationFilterShader;
     return physics->createScene(sceneDesc);
   }
 
   PxMaterialRef pxPhysicsCreateMaterial(PxPhysicsRef physics, float dynamicFriction, float staticFriction, float restitution)
   {
     return physics->createMaterial(dynamicFriction, staticFriction, restitution);
+  }
+
+  PxRigidStaticRef pxCreateRigidStatic(PxPhysicsRef physics, PxTransformf transform)
+  {
+    return physics->createRigidStatic(reinterpret_cast<PxTransform &>(transform));
+  }
+
+  PxRigidDynamicRef pxCreateRigidDynamic(PxPhysicsRef physics, PxTransformf transform)
+  {
+    return physics->createRigidDynamic(reinterpret_cast<PxTransform &>(transform));
+  }
+
+  PxShapeRef pxCreateShape(PxPhysicsRef physics, PxGeometryRef geometry, PxMaterialRef material, bool isExclusive)
+  {
+    return physics->createShape(*geometry, *material, isExclusive);
+  }
+
+  PxGeometryRef pxCreatePlaneGeometry()
+  {
+    return PxGeometryRef(new PxPlaneGeometry());
+  }
+
+  PxGeometryRef pxCreateBoxGeometry(PxVec3f halfExtents)
+  {
+    return PxGeometryRef(new PxBoxGeometry(halfExtents.x, halfExtents.y, halfExtents.z));
+  }
+
+  PxGeometryRef pxCreateSphereGeometry(C_PxReal radius)
+  {
+    return PxGeometryRef(new PxSphereGeometry(radius));
   }
 
   PxRigidStaticRef pxCreatePlane(PxPhysicsRef physics, PxPlanef plane, PxMaterialRef material)
@@ -75,9 +104,14 @@ extern "C"
     return scene->getActors(PxActorTypeFlags(flags), actors, bufferSize, startIndex);
   }
 
-  bool pxActorIsRigidStatic(PxActorRef actor)
+  bool pxActorIsRigid(PxActorRef actor)
   {
     return actor->is<PxRigidStatic>();
+  }
+
+  bool pxRigidActorAttachShape(PxRigidActorRef actor, PxShapeRef shape)
+  {
+    return actor->attachShape(*shape);
   }
 
   C_PxU32 pxRigidActorGetNbShapes(PxRigidActorRef actor)

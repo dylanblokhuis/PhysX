@@ -20,12 +20,16 @@ pub fn build(b: *std.Build) !void {
     const lib = if (is_shared) b.addSharedLibrary(.{
         .name = "PhysX",
         .target = target,
-        .optimize = .ReleaseFast,
+        .optimize = optimize,
     }) else b.addStaticLibrary(.{
         .name = "PhysX",
         .target = target,
-        .optimize = .ReleaseFast,
+        .optimize = optimize,
     });
+
+    // somehow physx literally memsets a nullptr to 0 on scene creation, so we disable this
+    lib.root_module.sanitize_c = false;
+
     b.installArtifact(lib);
 
     lib.linkLibC();
