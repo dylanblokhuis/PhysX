@@ -63,11 +63,22 @@ pub fn build(b: *std.Build) !void {
         .x86_64 => {
             lib.defineCMacro("PX_X64", "1");
 
-            // TODO add feature query
-            lib.defineCMacro("PX_SSE2", "1");
+            if (std.Target.x86.featureSetHas(target.result.cpu.features, .sse2)) {
+                lib.defineCMacro("PX_SSE2", "1");
+            }
         },
-        .aarch64 => lib.defineCMacro("PX_A64", "1"),
-        .arm => lib.defineCMacro("PX_ARM", "1"),
+        .aarch64 => {
+            lib.defineCMacro("PX_A64", "1");
+            if (std.Target.aarch64.featureSetHas(target.result.cpu.features, .neon)) {
+                lib.defineCMacro("PX_NEON", "1");
+            }
+        },
+        .arm => {
+            lib.defineCMacro("PX_ARM", "1");
+            if (std.Target.arm.featureSetHas(target.result.cpu.features, .neon)) {
+                lib.defineCMacro("PX_NEON", "1");
+            }
+        },
         else => {},
     }
 
@@ -77,6 +88,18 @@ pub fn build(b: *std.Build) !void {
         .linux => lib.defineCMacro("PX_LINUX", "1"),
         else => {},
     }
+
+    const flags = &.{
+        "-std=c++11",
+        "-fno-rtti",
+        "-fno-exceptions",
+        "-ffunction-sections",
+        "-fdata-sections",
+        "-fno-strict-aliasing",
+        "-fvisibility=hidden",
+        "-ffp-exception-behavior=maytrap",
+        "-fno-threadsafe-statics",
+    };
 
     var known_paths = std.StringHashMap(void).init(b.allocator);
     defer known_paths.deinit();
@@ -95,19 +118,7 @@ pub fn build(b: *std.Build) !void {
                 .file = .{
                     .cwd_relative = file_path,
                 },
-                .flags = &.{
-                    // "-std=c++11",
-
-                    "-std=c++11", "-fno-rtti", "-fno-exceptions", "-ffunction-sections", "-fdata-sections", "-fstrict-aliasing", "-fvisibility=hidden", "-ffp-exception-behavior=maytrap", "-fno-threadsafe-statics",
-                    // "-w",
-                    // "-fno-rtti",
-                    // "-fno-exceptions",
-                    // "-ffunction-sections",
-                    // "-fdata-sections",
-                    // "-fno-strict-aliasing",
-                    // "-fvisibility=hidden",
-                    // "-ffp-exception-behavior=maytrap",
-                },
+                .flags = flags,
             });
         }
 
@@ -142,9 +153,7 @@ pub fn build(b: *std.Build) !void {
 
     exe.addCSourceFile(.{
         .file = b.path("src/wrapper.cpp"),
-        .flags = &.{
-            "-std=c++11", "-fno-rtti", "-fno-exceptions", "-ffunction-sections", "-fdata-sections", "-fstrict-aliasing", "-fvisibility=hidden", "-ffp-exception-behavior=maytrap", "-fno-threadsafe-statics",
-        },
+        .flags = flags,
     });
     exe.addIncludePath(b.path("src"));
 
