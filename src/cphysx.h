@@ -105,7 +105,7 @@ bool pxRigidActorAttachShape(PxRigidActorRef actor, PxShapeRef shape);
 C_PxU32 pxRigidActorGetNbShapes(PxRigidActorRef actor);
 C_PxU32 pxRigidActorGetShapes(PxRigidActorRef actor, PxShapeRef *shapes, C_PxU32 size, C_PxU32 startIndex);
 
-PxMat44f pxShapeGetGlobalPose(PxShapeRef shape, PxRigidActorRef actor);
+PxTransformf pxShapeGetGlobalPose(PxShapeRef shape, PxRigidActorRef actor);
 PxGeometryRef pxShapeGetGeometry(PxShapeRef shape);
 
 C_PxGeometryType pxGeometryGetType(PxGeometryRef geometry);

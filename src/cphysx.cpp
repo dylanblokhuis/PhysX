@@ -11,7 +11,7 @@ static PxDefaultCpuDispatcher *gDispatcher = NULL;
 
 extern "C"
 {
-#include "wrapper.h"
+#include "cphysx.h"
 
   PxFoundationRef pxCreateFoundation()
   {
@@ -117,10 +117,10 @@ extern "C"
     return actor->getShapes(shapes, size, startIndex);
   }
 
-  PxMat44f pxShapeGetGlobalPose(PxShapeRef shape, PxRigidActorRef actor)
+  PxTransformf pxShapeGetGlobalPose(PxShapeRef shape, PxRigidActorRef actor)
   {
-    PxMat44 shapePose(PxShapeExt::getGlobalPose(*shape, *actor));
-    return reinterpret_cast<PxMat44f &>(shapePose);
+    PxTransform transform = PxShapeExt::getGlobalPose(*shape, *actor);
+    return reinterpret_cast<PxTransformf &>(transform);
   }
 
   PxGeometryRef pxShapeGetGeometry(PxShapeRef shape)
