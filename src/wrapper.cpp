@@ -13,7 +13,6 @@ extern "C"
 {
 #include "wrapper.h"
 
-
   PxFoundationRef pxCreateFoundation()
   {
     return PxCreateFoundation(PX_PHYSICS_VERSION, gAllocator, gErrorCallback);
@@ -74,11 +73,6 @@ extern "C"
     return PxGeometryRef(new PxSphereGeometry(radius));
   }
 
-  PxRigidStaticRef pxCreatePlane(PxPhysicsRef physics, PxPlanef plane, PxMaterialRef material)
-  {
-    return PxCreatePlane(*physics, PxPlane(plane.normal.x, plane.normal.y, plane.normal.z, plane.distance), *material);
-  }
-
   void pxSceneAddActor(PxSceneRef scene, PxActorRef actor)
   {
     scene->addActor(*actor);
@@ -127,5 +121,35 @@ extern "C"
   {
     PxMat44 shapePose(PxShapeExt::getGlobalPose(*shape, *actor));
     return reinterpret_cast<PxMat44f &>(shapePose);
+  }
+
+  PxGeometryRef pxShapeGetGeometry(PxShapeRef shape)
+  {
+    return PxGeometryRef(&shape->getGeometry());
+  }
+
+  C_PxGeometryType pxGeometryGetType(PxGeometryRef geometry)
+  {
+    return static_cast<C_PxGeometryType>(geometry->getType());
+  }
+
+  C_PxBoxGeometry pxGeometryGetBox(PxGeometryRef geometry)
+  {
+    PxBoxGeometry* box = static_cast<PxBoxGeometry*>(geometry);
+
+    C_PxBoxGeometry c_box;
+    c_box.halfExtents = reinterpret_cast<PxVec3f &>(box->halfExtents);
+
+    return c_box;
+  }
+
+  C_PxSphereGeometry pxGeometryGetSphere(PxGeometryRef geometry)
+  {
+    PxSphereGeometry* sphere = static_cast<PxSphereGeometry*>(geometry);
+
+    C_PxSphereGeometry c_sphere;
+    c_sphere.radius = sphere->radius;
+
+    return c_sphere;
   }
 };
