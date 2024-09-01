@@ -35,8 +35,8 @@ pub fn build(b: *std.Build) !void {
     lib.linkLibC();
     lib.linkLibCpp();
 
-    var physx_dir = try std.fs.openDirAbsolute(b.pathFromRoot("./physx"), .{ .iterate = true });
-    var source_dir = try std.fs.openDirAbsolute(b.pathFromRoot("./physx/source"), .{ .iterate = true });
+    var physx_dir = try std.fs.openDirAbsolute(try b.build_root.join(b.allocator, &.{"./physx"}), .{ .iterate = true });
+    var source_dir = try std.fs.openDirAbsolute(try b.build_root.join(b.allocator, &.{"./physx/source"}), .{ .iterate = true });
 
     lib.addIncludePath(.{
         .cwd_relative = try physx_dir.realpathAlloc(b.allocator, "include"),
